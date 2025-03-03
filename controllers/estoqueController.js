@@ -1,21 +1,28 @@
+const Corte = require("../models/Corte");
 const Produto = require("../models/Produto");
 
-// 🔹 Adicionar matéria-prima ao estoque
-const adicionarEstoque = async (req, res) => {
+// 🔹 Retorna todos os cortes de um produto específico com preço por KG
+const getCortesPorProduto = async (req, res) => {
   try {
-      const { produto_id, corte_id, peso_disponivel } = req.body;
+    const { id } = req.params;
 
-      // 🔹 Verifica se pelo menos um dos campos está preenchido, mas não os dois
-      if ((!produto_id && !corte_id) || (produto_id && corte_id)) {
-          return res.status(400).json({ message: "Informe apenas produto_id OU corte_id, nunca os dois juntos." });
-      }
+    const cortes = await Corte.findAll({
+      where: { produto_id: id },
+      include: [
+        {
+          model: Produto,
+          as: "produto",
+          attributes: ["nome"], // 🔹 Pegamos apenas o nome do produto
+        },
+      ],
+      attributes: ["id", "nome", "preco_por_kg"], // 🔹 Incluímos o preço no retorno
+    });
 
-      const novoEstoque = await Estoque.create({ produto_id, corte_id, peso_disponivel });
-
-      res.status(201).json({ message: "Estoque atualizado!", novoEstoque });
+    res.json(cortes);
   } catch (error) {
-      console.error("❌ Erro ao adicionar estoque:", error);
-      res.status(500).json({ message: "Erro ao adicionar estoque", error });
+    console.error("❌ Erro ao buscar cortes:", error);
+    res.status(500).json({ message: "Erro ao buscar cortes", error: error.message });
   }
 };
-module.exports = { adicionarEstoque };
+
+module.exports = { getCortesPorProduto };
