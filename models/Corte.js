@@ -19,6 +19,11 @@ const Corte = sequelize.define("Corte", {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
   },
+  preco_por_kg: {  // ✅ Adicionando o novo campo
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0,
+  },
 }, {
   tableName: "cortes",
   timestamps: false,
