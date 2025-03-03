@@ -1,6 +1,7 @@
 const Corte = require("../models/Corte");
+const Produto = require("../models/Produto");
 
-// 🔹 Retorna todos os cortes de uma parte específica
+// 🔹 Retorna todos os cortes de um produto específico
 const getCortesPorProduto = async (req, res) => {
   try {
     const { id } = req.params;
@@ -13,6 +14,7 @@ const getCortesPorProduto = async (req, res) => {
   }
 };
 
+// 🔹 Retorna todos os cortes disponíveis com nome do produto e preço por kg
 const getCortes = async (req, res) => {
   try {
     const cortes = await Corte.findAll({
@@ -40,6 +42,5 @@ const getCortes = async (req, res) => {
   }
 };
 
-module.exports = { getCortes };
-
-module.exports = { getCortesPorProduto };
+// ✅ Exporta corretamente as duas funções
+module.exports = { getCortesPorProduto, getCortes };
