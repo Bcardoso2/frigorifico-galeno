@@ -40,5 +40,6 @@ const getCortes = async (req, res) => {
   }
 };
 
+module.exports = { getCortes };
 
-module.exports = { getCortesPorProduto, getCortes};
+module.exports = { getCortesPorProduto };
