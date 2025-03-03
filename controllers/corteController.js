@@ -21,19 +21,19 @@ const getCortes = async (req, res) => {
       include: [
         {
           model: Produto,
-          as: "produto", // ✅ Define o alias corretamente
-          attributes: ["nome"], // 🔹 Obtém apenas o nome do produto associado
+          attributes: ["nome"], // Obtém o nome do produto associado
+          as: "produto", // 🔹 Garante que o alias seja corretamente referenciado
         },
       ],
-      attributes: ["id", "nome", "preco_kg"], // 🔹 Obtém nome e preço por kg do corte
+      attributes: ["id", "nome", "preco_kg"], // 🔹 Inclui preco_kg
     });
 
-    // Formata a resposta incluindo os detalhes do produto
+    // Formata a resposta incluindo os detalhes do produto e o preço
     const response = cortes.map((corte) => ({
       id: corte.id,
       nome: corte.nome,
       produto: corte.produto ? corte.produto.nome : "Sem Produto",
-      preco_kg: corte.preco_kg,
+      preco_kg: corte.preco_kg, // 🔹 Adiciona o preco_kg
     }));
 
     res.json(response);
