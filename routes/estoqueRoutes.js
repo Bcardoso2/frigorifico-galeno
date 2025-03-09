@@ -9,40 +9,50 @@ const { adicionarEstoque } = require("../controllers/estoqueController");
 router.post("/entrada", adicionarEstoque);
 
 
-router.get("/cortes_disponiveis", async (req, res) => {
+Future<void> _buscarCortesDisponiveis() async {
+    setState(() => isLoading = true);
     try {
-      const cortesMaisEstoque = await Estoque.findAll({
-        include: [
-          {
-            model: Corte,
-            attributes: ["nome"], // 🔹 Agora pega corretamente o nome do corte
-          },
-        ],
-        where: {
-          corte_id: { [Op.ne]: null }, // 🔹 Busca apenas os cortes (não os produtos inteiros)
-          peso_disponivel: { [Op.gt]: 0 },
-        },
-        order: [["peso_disponivel", "DESC"]],
-        limit: 10,
-      });
-  
-      if (cortesMaisEstoque.length === 0) {
-        console.log("⚠️ Nenhum corte com estoque disponível.");
-      }
-  
-      res.json(
-        cortesMaisEstoque.map((item) => ({
-          id: item.id,
-          nome: item.Corte ? item.Corte.nome : "Desconhecido",
-          quantidade_kg: item.peso_disponivel,
-        }))
+      final response = await http.get(
+        Uri.parse('${apiService.baseUrl}/cortes'),
+        headers: {'Content-Type': 'application/json'},
       );
+      
+      if (response.statusCode == 200) {
+        // Obtém os cortes da nova rota
+        List<dynamic> cortes = json.decode(response.body);
+        
+        // Filtramos apenas os cortes com estoque disponível e adicionamos os campos
+        // necessários para a tela PDV
+        List<dynamic> cortesProcessados = [];
+        
+        for (var corte in cortes) {
+          // Precisamos verificar se o corte tem estoque disponível
+          // E adicionar o campo 'quantidade_kg' que a tela espera
+          if (corte['id'] != null && corte['nome'] != null && corte['preco_kg'] != null) {
+            // Adiciona à lista processada
+            cortesProcessados.add({
+              'id': corte['id'],
+              'nome': corte['nome'],
+              'preco_kg': corte['preco_kg'],
+              // Se o estoque disponível não vier na resposta, 
+              // podemos definir um valor padrão ou obtê-lo de outro endpoint
+              'quantidade_kg': corte['quantidade_kg'] ?? corte['peso_disponivel'] ?? 1.0
+            });
+          }
+        }
+        
+        setState(() {
+          cortesDisponiveis = cortesProcessados;
+        });
+      } else {
+        throw Exception('Falha ao buscar cortes: ${response.statusCode}');
+      }
     } catch (error) {
-      console.error("❌ Erro ao buscar cortes com mais estoque:", error);
-      res.status(500).json({ message: "Erro ao buscar cortes com mais estoque", error });
+      print("❌ Erro ao buscar cortes: $error");
+      _mostrarMensagem("Erro ao buscar cortes disponíveis.");
     }
-  });
-
+    setState(() => isLoading = false);
+  }
   router.get("/produtos", async (req, res) => {
     try {
         const produtos = await Produto.findAll({
