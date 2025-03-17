@@ -30,21 +30,22 @@ router.post("/", async (req, res) => {
       categoria: categoria || "parte", // Por padrão é uma parte
     });
     
-    // Também adicionamos ao estoque (se necessário, adicionar esse trecho)
-    // await Estoque.create({
-    //   produto_id: novoProduto.id,
-    //   quantidade_kg,
-    //   tipo_movimentacao: "entrada"
-    // });
+    // Adicionamos ao estoque
+    await Estoque.create({
+      produto_id: novoProduto.id,
+      quantidade_kg,
+      tipo_movimentacao: "entrada"
+    });
     
-    res.status(201).json(novoProduto);
+    // Buscamos o produto com peso atualizado
+    const produtoComPeso = await Produto.findByPk(novoProduto.id);
+    
+    res.status(201).json(produtoComPeso);
   } catch (error) {
     console.error("❌ Erro ao adicionar produto:", error);
     res.status(500).json({ message: "Erro ao adicionar produto", error: error.message });
   }
 });
-
-
 
 
 module.exports = router;
