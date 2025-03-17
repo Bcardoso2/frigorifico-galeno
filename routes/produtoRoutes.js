@@ -16,34 +16,34 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const { nome, tipo, quantidade_kg, categoria } = req.body;
+    const { produto_id, quantidade_kg, tipo_movimentacao } = req.body;
     
-    if (!nome || !quantidade_kg) {
-      return res.status(400).json({ message: "Nome e quantidade em kg são obrigatórios" });
+    if (!produto_id || !quantidade_kg) {
+      return res.status(400).json({ message: "ID do produto e quantidade em kg são obrigatórios" });
     }
     
-    // Criamos o novo produto no banco de dados
-    const novoProduto = await Produto.create({
-      nome,
-      tipo: tipo || "parte", // Por padrão é uma parte
+    // Verificar se o produto existe
+    const produto = await Produto.findByPk(produto_id);
+    if (!produto) {
+      return res.status(404).json({ message: "Produto não encontrado" });
+    }
+    
+    // Adicionar entrada no estoque
+    const novaEntrada = await Estoque.create({
+      produto_id,
       quantidade_kg,
-      categoria: categoria || "parte", // Por padrão é uma parte
+      tipo_movimentacao: tipo_movimentacao || "entrada",
+      data_movimentacao: new Date()
     });
     
-    // Adicionamos ao estoque
-    await Estoque.create({
-      produto_id: novoProduto.id,
-      quantidade_kg,
-      tipo_movimentacao: "entrada"
-    });
+    // Atualizar o peso disponível do produto (isso depende da sua lógica de negócio)
+    // Exemplo: obter o total no estoque após a adição
     
-    // Buscamos o produto com peso atualizado
-    const produtoComPeso = await Produto.findByPk(novoProduto.id);
-    
-    res.status(201).json(produtoComPeso);
+    // Retornar o registro de estoque criado
+    res.status(201).json(novaEntrada);
   } catch (error) {
-    console.error("❌ Erro ao adicionar produto:", error);
-    res.status(500).json({ message: "Erro ao adicionar produto", error: error.message });
+    console.error("❌ Erro ao adicionar ao estoque:", error);
+    res.status(500).json({ message: "Erro ao adicionar ao estoque", error: error.message });
   }
 });
 
