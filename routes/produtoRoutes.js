@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const { produto_id, quantidade_kg, tipo_movimentacao } = req.body;
+    const { produto_id, quantidade_kg } = req.body;
     
     if (!produto_id || !quantidade_kg) {
       return res.status(400).json({ message: "ID do produto e quantidade em kg são obrigatórios" });
@@ -28,24 +28,21 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ message: "Produto não encontrado" });
     }
     
-    // Adicionar entrada no estoque
-    const novaEntrada = await Estoque.create({
-      produto_id,
-      quantidade_kg,
-      tipo_movimentacao: tipo_movimentacao || "entrada",
-      data_movimentacao: new Date()
-    });
+    // Atualizar o peso disponível somando a nova quantidade
+    const novopesoDisponivel = produto.peso_disponivel + parseFloat(quantidade_kg);
     
-    // Atualizar o peso disponível do produto (isso depende da sua lógica de negócio)
-    // Exemplo: obter o total no estoque após a adição
+    // Salvar a atualização
+    await produto.update({ peso_disponivel: novopesoDisponivel });
     
-    // Retornar o registro de estoque criado
-    res.status(201).json(novaEntrada);
+    // Buscar o produto atualizado para retornar
+    const produtoAtualizado = await Produto.findByPk(produto_id);
+    
+    // Retornar o produto com o peso atualizado
+    res.status(200).json(produtoAtualizado);
   } catch (error) {
     console.error("❌ Erro ao adicionar ao estoque:", error);
     res.status(500).json({ message: "Erro ao adicionar ao estoque", error: error.message });
   }
 });
-
 
 module.exports = router;
